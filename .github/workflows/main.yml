@@ -1,0 +1,90 @@
+name: Autograding - Program 16
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+
+  autograding:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Check react-router-dom
+        run: |
+          node -e "
+          const p=require('./package.json');
+          if (!p.dependencies || !p.dependencies['react-router-dom']) {
+            console.error('react-router-dom is missing');
+            process.exit(1);
+          }
+          console.log('react-router-dom found');
+          "
+
+      - name: Check App.js
+        run: |
+          test -f src/App.js
+          echo "App.js found"
+
+      - name: Check React Router Components
+        run: |
+          grep -q "BrowserRouter" src/App.js
+          grep -q "Routes" src/App.js
+          grep -q "Route" src/App.js
+          grep -q "Link" src/App.js
+          echo "React Router components found"
+
+      - name: Check Home Route
+        run: |
+          grep -Eq 'path=["'\'']\/["'\'']' src/App.js
+          echo "Home route found"
+
+      - name: Check About Us Route
+        run: |
+          grep -Eq 'path=["'\'']\/aboutus["'\'']' src/App.js
+          echo "About Us route found"
+
+      - name: Check Contact Us Route
+        run: |
+          grep -Eq 'path=["'\'']\/contactus["'\'']' src/App.js
+          echo "Contact Us route found"
+
+      - name: Check Navigation Links
+        run: |
+          grep -Eq 'to=["'\'']\/["'\'']' src/App.js
+          grep -Eq 'to=["'\'']\/aboutus["'\'']' src/App.js
+          grep -Eq 'to=["'\'']\/contactus["'\'']' src/App.js
+          echo "Navigation links found"
+
+      - name: Run Test Cases
+        run: npm test -- --watchAll=false
+
+      - name: Build React Application
+        run: npm run build
+
+      - name: Autograding Completed
+        run: |
+          echo "================================="
+          echo "PROGRAM 16 AUTOGRADING SUCCESSFUL"
+          echo "================================="
